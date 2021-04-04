@@ -16,6 +16,11 @@ import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
 
 class Game {
 
+    /**
+     * 
+     * @param { DOMElement } canvas - <canvas> element to render to
+     */
+
     constructor( canvas ) {
 
         let self = this;
