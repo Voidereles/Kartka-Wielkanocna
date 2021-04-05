@@ -24,6 +24,14 @@ Egg.schema = {
     points: { type: Types.Number }
 };
 
+class FloatingCloud extends Component {}
+FloatingCloud.schema = {
+    direction: { type: Types.Ref, default: new Vector3() },
+    velocity: { type: Types.Number, default: 1 },
+    boundries: { type: Types.Ref },
+    respawnRange: { type: Types.Number }
+};
+
 class Hearts extends TagComponent {}
 
-export { Moving, ControllableBasket, Egg, Hearts };
+export { Moving, ControllableBasket, Egg, Hearts, FloatingCloud };

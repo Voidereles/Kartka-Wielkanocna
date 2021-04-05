@@ -1,8 +1,8 @@
 // ECS
 import { Component, System, Types } from 'ecsy';
 import { ECSYThreeWorld } from 'ecsy-three';
-import { Egg, ControllableBasket, Moving, Hearts } from './Components';
-import { BasketMoveSystem, MoveSystem, EggCollisionSystem } from './Systems';
+import { Egg, ControllableBasket, Moving, Hearts, FloatingCloud } from './Components';
+import { BasketMoveSystem, MoveSystem, EggCollisionSystem, CloudFloatingSystem } from './Systems';
 
 // THREE
 import * as THREE from 'three';
@@ -11,7 +11,7 @@ import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 
 // Utility
 import Stats from 'three/examples/jsm/libs/stats.module';
-import { GUI } from 'three/examples/jsm/libs/dat.gui.module';
+import { gui, GUI } from 'three/examples/jsm/libs/dat.gui.module';
 
 
 class Game {
@@ -60,13 +60,24 @@ class Game {
                     'black': -100
                 },
                 startingEggVelocity: 1,
-                eggVelocityAcceleration: 0.05
+                eggVelocityAcceleration: 0.05,
+                clouds: {
+                    boundries: { min: { x: -11, y: 5.5 }, max: { x: 15, y: 7.5 } },
+                    speed: 0.3,
+                    speedVariation: 0.4,
+                    respawnRange: 4
+                },
+                rabbit: {
+                    animationCD: 2, // seconds
+                    animationRandom: 2 // seconds
+                }
             }
         };
 
         this._playing = false;
         this._basket = null;
         this._heartsContaine = null;
+        this._rabbit = null;
         this._eggs = [];
         
         // ECS  
@@ -75,11 +86,18 @@ class Game {
             .registerComponent( Egg )
             .registerComponent( ControllableBasket )
             .registerComponent( Hearts )
+            .registerComponent( FloatingCloud )
             .registerComponent( Moving );
         this._world
             .registerSystem( BasketMoveSystem )
             .registerSystem( MoveSystem )
+            .registerSystem( CloudFloatingSystem )
             .registerSystem( EggCollisionSystem );
+
+        // Disable systems before the game starts
+        this._world.getSystem( BasketMoveSystem ).stop();
+        this._world.getSystem( MoveSystem ).stop();
+        this._world.getSystem( EggCollisionSystem ).stop();
         
         if ( this._settings.debug ) {
             //Stats
@@ -173,6 +191,9 @@ class Game {
             this._basket.getMutableComponent( ControllableBasket ).lives = this._settings.game.startingHearts;
             this._fillHeartsContainer();
             this._resetEggsPositions();
+            this._world.getSystem( BasketMoveSystem ).play();
+            this._world.getSystem( MoveSystem ).play();
+            this._world.getSystem( EggCollisionSystem ).play();
         } else {
             console.warn('Models not loaded yet!');
         }
@@ -181,6 +202,9 @@ class Game {
     stop() {
         this._playing = false;
         this._clock.stop();
+        this._world.getSystem( BasketMoveSystem ).stop();
+        this._world.getSystem( MoveSystem ).stop();
+        this._world.getSystem( EggCollisionSystem ).stop();
     }
 
     _loadModels() {
@@ -203,17 +227,6 @@ class Game {
             'trawa',
         ];
 
-        const loadAndAssign = ( url ) => {
-            this._gltfLoader.load( path + url + ext, ( gltf ) => {
-                gltf.scene.traverse( ( child ) => {
-                    if ( this._settings.shadows.ON && child.isMesh ) {
-                        child.receiveShadow = child.castShadow = true;
-                    }
-                });
-                this._models[ url ] =  gltf.scene;
-            });
-        }
-
         urls.forEach( ( url ) => {
             this._gltfLoader.load( path + url + ext, ( gltf ) => {
                 gltf.scene.traverse( ( child ) => {
@@ -221,6 +234,7 @@ class Game {
                         child.receiveShadow = child.castShadow = true;
                     }
                 });
+                gltf.scene.animations = gltf.animations;
                 this._models[ url ] =  gltf.scene;
             });
         });
@@ -233,9 +247,37 @@ class Game {
         for ( let key in this._models ) {
 
             const model = this._models[ key ];
-            
 
-            if ( key.includes('koszyczek') ) {
+            if ( key.includes('krolik') ) {
+
+                const entity = this._world.createEntity().addObject3DComponent( model, this._scene );
+
+                this._rabbit = entity.getObject3D();
+                this._rabbit.position.set( -6, 1.66, -0.6 );
+
+                this._rabbit.mixer = new THREE.AnimationMixer( this._rabbit );
+                const clip = THREE.AnimationClip.findByName( this._rabbit.animations, 'Uszka' );
+                const uszkaAction = this._rabbit.mixer.clipAction( clip );
+                this._rabbit.actions = {
+                    uszka: uszkaAction
+                };
+                this._rabbit.actions.uszka.loop = THREE.LoopOnce;
+                this._rabbit.actions.uszka.timeScale = 1; // Speed up or slow down the animation
+                // this._rabbit.actions.uszka.play();
+
+                const animCD = this._settings.game.rabbit.animationCD;
+                const animRandom = this._settings.game.rabbit.animationRandom;
+
+                const animationLoop = () => { // Loop to play the animation once every few seconds
+                    setTimeout( () => {
+                        this._rabbit.actions.uszka.reset();
+                        this._rabbit.actions.uszka.play();
+                        animationLoop();
+                    }, ( animCD + animRandom * Math.random() ) * 1000 );
+                }
+                animationLoop();
+
+            } else if ( key.includes('koszyczek') ) {
 
                 const entity = this._world.createEntity().addObject3DComponent( model, this._scene );
                 entity.addComponent( ControllableBasket, {
@@ -258,7 +300,6 @@ class Game {
 
                 this._heartsContainer = this._world.createEntity().addObject3DComponent( new THREE.Object3D(), this._scene );
                 this._heartsContainer.addComponent( Hearts );
-                // this._heartsContainer.getObject3D().position.set( -4, 4.7, 0 );
                 this._heartsContainer.getObject3D().position.set( -5, 4.7, 0 );
 
             } else if ( key.includes('jajko') ) {
@@ -280,6 +321,24 @@ class Game {
 
                     this._eggs.push( eggEntity );
                 }
+
+            } else if ( key.includes('chmurka') ) {
+
+                const cloudEntity = this._world.createEntity().addObject3DComponent( model, this._scene );
+                const boundries = this._settings.game.clouds.boundries;
+                const respawnRange = this._settings.game.clouds.respawnRange;
+                cloudEntity.addComponent( FloatingCloud, {
+                    direction: new THREE.Vector3( 1, 0, 0 ),
+                    velocity: this._settings.game.clouds.speed + this._settings.game.clouds.speedVariation * Math.random(),
+                    boundries: boundries,
+                    respawnRange: respawnRange
+                } );
+
+                model.position.z = -5;
+                model.position.y = boundries.min.y + (boundries.max.y - boundries.min.y) * Math.random();
+                model.position.x = 
+                    (boundries.min.x + respawnRange) + 
+                    ((boundries.max.x - respawnRange) - (boundries.min.x + respawnRange)) * Math.random();
 
             } else {
 
@@ -326,11 +385,11 @@ class Game {
         };
 
         const onKeyDown = ( evt ) => {
-            evt.preventDefault();
+            // evt.preventDefault();
             changeKeyState( evt.code, true );
         }
         const onKeyUp = ( evt ) => {
-            evt.preventDefault();
+            // evt.preventDefault();
             changeKeyState( evt.code, false );
         }
 
@@ -392,9 +451,10 @@ class Game {
         const delta = this._clock.getDelta();
         const elapsedTime = this._clock.elapsedTime;
 
-        if ( this._playing ) {
-            this._world.execute( delta, elapsedTime );
+        if ( this.loaded ) {
+            this._rabbit.mixer.update( delta );
         }
+        this._world.execute( delta, elapsedTime );
         
         this._renderer.render( this._scene.getObject3D(), this._camera );
 

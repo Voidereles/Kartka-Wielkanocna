@@ -1,5 +1,7 @@
+const scoreDiv = document.getElementsByClassName('score')[0];
+
 import { System } from 'ecsy';
-import { ControllableBasket, Moving, Egg, Hearts } from './Components';
+import { ControllableBasket, Moving, Egg, Hearts, FloatingCloud } from './Components';
 import * as THREE from 'three';
 
 class BasketMoveSystem extends System {
@@ -29,7 +31,7 @@ BasketMoveSystem.queries = {
 
 class MoveSystem extends System {
     init() {
-        this.vec3 = new THREE.Vector3()
+        this.vec3 = new THREE.Vector3();
     }
     execute( delta, time ) {
 
@@ -53,7 +55,7 @@ class MoveSystem extends System {
             // console.log( velocity );
             obj.position.add( this.vec3.copy( movingComponent.direction ).multiplyScalar( velocity ) );
 
-            if ( obj.position.y < movingComponent.boundries.min.y ) {
+            if ( obj.position.y < movingComponent.boundries.min.y ) { // Egg lower boundry
                 obj.position.set( // Reset egg
                     movingComponent.boundries.min.x + (movingComponent.boundries.max.x - movingComponent.boundries.min.x) * Math.random(),
                     movingComponent.boundries.max.y + Math.random() * (movingComponent.respawnRange + time),
@@ -111,7 +113,7 @@ class EggCollisionSystem extends System {
 
                 controlComponent.score += eggComponent.points;
 
-                document.getElementsByClassName('score')[0].textContent = 'Score: ' + controlComponent.score;
+                scoreDiv.textContent = 'Score: ' + controlComponent.score;
 
                 if ( eggComponent.points < 0 ) { // black egg
                     controlComponent.lives--;
@@ -128,4 +130,29 @@ EggCollisionSystem.queries = {
     hearts: { components: [ Hearts ] },
 };
 
-export { BasketMoveSystem, MoveSystem, EggCollisionSystem };
+class CloudFloatingSystem extends System {
+    init() {
+        this.vec3 = new THREE.Vector3();
+    }
+    execute( delta, time ) {
+
+        this.queries.clouds.results.forEach( ( entity ) => {
+
+            const obj = entity.getObject3D();
+            const cloudComponent = entity.getComponent( FloatingCloud );
+
+            const velocity = cloudComponent.velocity * delta;
+            obj.position.add( this.vec3.copy( cloudComponent.direction ).multiplyScalar( velocity ) );
+
+            if ( obj.position.x > cloudComponent.boundries.max.x ) { // Reached boundry, transform back to beginning (scrolling)
+                
+                obj.position.x = cloudComponent.boundries.min.x - cloudComponent.respawnRange * Math.random();
+            }
+        });
+    }
+}
+CloudFloatingSystem.queries = {
+    clouds: { components: [ FloatingCloud ] }
+};
+
+export { BasketMoveSystem, MoveSystem, EggCollisionSystem, CloudFloatingSystem };
