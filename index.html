@@ -1,23 +1,138 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Kartka Wielkanocna</title>
-    <link rel="stylesheet" href="css/Main.css">
+    <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <canvas class="three-canvas"></canvas>
 
     <div class="menu">
-        <h1 class="title">Menu</h1>
-        <h3 class="game-over-score"></h3>
-        <button class="start">Start</button>
+        <!-- <h1 class="title">Menu</h1> -->
+        <!-- <h3 class="game-over-score"></h3> -->
+        <!-- <button class="start">Start</button> -->
+        <!-- <input type="text"> -->
     </div>
 
-    <div class="score">Score: 0</div>
-    
+
+    <div class="container">
+        <picture>
+            <img class="company-logo" src="./images/logo.svg" alt="">
+        </picture>
+        <h1 class="wishes__text">Smacznej szynki i jajeczka w ten świąteczny ranek, a w koszyczku wielkanocnym
+            samych niespodzianek!</h1>
+        <h2 class="wishes__who-wish text-right mr-3 mb-0">życzą pracownicy ARKNE.</h2>
+        <h3 class="wishes__smaller text-right mr-3 mt-0">oraz pracownicy Arkne</h3>
+        <div class="mt-5 text-center font-orange fontSize-L d-sm-none">Minigra jest niedostępna na
+            urządzeniach mobilnych.
+        </div>
+
+        <div class="button-group d-none d-sm-block">
+            <a class="btn font-orange start" href="#">Zagraj w grę</a>
+            <a class="btn font-aqua" href="#">Zasady gry</a>
+            <a class="btn font-dark" href="#">Ranking</a>
+            <a class="btn font-purple" href="#">Zaproś znajomego</a>
+        </div>
+    </div>
+
+    <div class="container transparent" id="gameOver">
+        <h2 class="font-aqua fontSize-XL text-center mb-0">Zdobyłeś</h2>
+        <h1 class="fontSize-H1 font-orange text-center mt-0"><span class="game-over-score">238</span> punktów</h1>
+
+        <div class="mt-5 text-center font-orange fontSize-L d-sm-none">Minigra jest niedostępna na
+            urządzeniach mobilnych.
+        </div>
+
+        <form action="#" class="d-flex align-items-center flex-wrap mt-5">
+            <div class="col-12 col-xl-8 d-flex flex-wrap">
+                <div class="form-group">
+                    <label class="form-label" for="name">Twoje imię</label>
+                    <input id="name" name="name" class="form-input" type="text" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Twój e-mail</label>
+                    <input id="email" name="email" class="form-input" type="email" required>
+                </div>
+
+
+                <small class="form-info">Dodając swój wynik do rankingu akceptujesz zgodę na wysyłanie do siebie
+                    przez
+                    ARKNE GROUP Sp.
+                    z o.o. z siedzibą w Katowicach 40-012, ul. Św. Jana 11/4 NIP: 000000000; REGON: 00000000; KRS:
+                    000000 wiadomości e-mail w celach marketingowych.</small>
+            </div>
+            <div class="col-12 col-xl-4 text-center text-xl-right mt-5 mt-xl-0">
+                <button type="submit" class="btn form-btn font-orange">Zapisz wynik</button>
+            </div>
+        </form>
+
+        <div class="button-group d-none d-sm-block">
+            <a class="btn font-orange start" href="#">Zagraj ponownie</a>
+            <a class="btn font-dark" href="#">Ranking</a>
+            <a class="btn font-purple" href="#">Zaproś znajomego</a>
+        </div>
+    </div>
+
+    <div class="container transparent" id="inviteFriend">
+        <h1 class="font-purple fontSize-H1 text-center">Zaproś znajomego</h1>
+        <h2 class="fontSize-XL text-center mr-3 mb-0">Wyślij spersonalizowane życzenia świąteczne znajomemu!
+        </h2>
+
+        <div class="mt-5 text-center font-orange fontSize-L d-sm-none">Minigra jest niedostępna na
+            urządzeniach mobilnych.
+        </div>
+
+        <form action="#" class="d-flex align-items-center flex-wrap mt-5">
+            <div class="col-12 col-xl-8 d-flex flex-wrap">
+                <div class="form-group">
+                    <label class="form-label" for="name">Twoje imię</label>
+                    <input id="name" name="name" class="form-input" type="text" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Twój e-mail</label>
+                    <input id="email" name="email" class="form-input" type="email" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="friendName">Imię znajomego</label>
+                    <input id="friendName" name="friendName" class="form-input" type="text" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="friendEmail">E-mail znajomego</label>
+                    <input id="friendEmail" name="friendEmail" class="form-input" type="email" required>
+                </div>
+
+                <small class="form-info">Dodając swój wynik do rankingu akceptujesz zgodę na wysyłanie do siebie
+                    przez
+                    ARKNE GROUP Sp.
+                    z o.o. z siedzibą w Katowicach 40-012, ul. Św. Jana 11/4 NIP: 000000000; REGON: 00000000; KRS:
+                    000000 wiadomości e-mail w celach marketingowych.</small>
+            </div>
+            <div class="col-12 col-xl-4 text-center text-xl-right mt-5 mt-xl-0">
+                <button type="submit" class="btn form-btn font-orange">Zaproś znajomego</button>
+            </div>
+        </form>
+
+        <div class="button-group d-none d-sm-block">
+            <a class="btn font-orange start" href="#">Zagraj ponownie</a>
+            <a class="btn font-dark" href="#">Ranking</a>
+        </div>
+    </div>
+
+    <div class="score">0 punktów</div>
+
+
+
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.3.4/dist/gsap.min.js"></script>
     <script type="module" src="js/Main.js"></script>
 </body>
+
 </html>

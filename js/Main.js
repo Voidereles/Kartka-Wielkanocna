@@ -1,25 +1,42 @@
-import { Game } from './Game';
+import {
+    Game
+} from './Game';
+import './UI';
 
 const canvas = document.getElementsByClassName("three-canvas")[0];
 const menu = document.getElementsByClassName('menu')[0];
 const gameOverScoreDiv = document.getElementsByClassName('game-over-score')[0];
-const startBtn = document.getElementsByClassName('start')[0];
+
+const gameOverDiv = document.getElementById('gameOver');
+const startButtons = document.querySelectorAll('.start');
 const scoreDiv = document.getElementsByClassName('score')[0];
 
 init();
+
 function init() {
 
-    const game = new Game( canvas );
+    const game = new Game(canvas);
 
-    startBtn.addEventListener( 'click', () => {
-        game.start();
-        menu.style.display = 'none';
-        scoreDiv.textContent = 'Score: 0';
-    }, false );
+    startButtons.forEach(element => {
+        element.addEventListener('click', () => {
+            game.start();
+            menu.style.display = 'none';
+            scoreDiv.textContent = '0 punktów';
+            document.querySelectorAll('.container').forEach(element => {
+                element.classList.add('transparent');
+            });
+            if (scoreDiv.classList.contains('transparent')) {
+                scoreDiv.classList.remove('transparent');
+            }
+        }, false);
+    });
 
-    document.addEventListener( 'Game Over', () => {
+
+    document.addEventListener('Game Over', () => {
         game.stop();
         menu.style.display = 'inline-block';
-        gameOverScoreDiv.textContent = 'Your Score: ' + game.getScore();
-    }, false );
+        gameOverScoreDiv.textContent = game.getScore();
+        gameOverDiv.classList.remove('transparent');
+        scoreDiv.classList.add('transparent');
+    }, false);
 }
