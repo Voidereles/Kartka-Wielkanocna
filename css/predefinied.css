@@ -25,6 +25,10 @@ h3 {
   font-size: 1.25rem;
 }
 
+small {
+  font-size: 0.75rem;
+}
+
 .text-right {
   text-align: right;
 }
@@ -35,8 +39,8 @@ h3 {
   padding: 1rem;
   color: #4C6D73;
   margin-top: 2vh;
-  -webkit-transition: 0.3s;
-  transition: 0.3s;
+  -webkit-transition: 0.75s;
+  transition: 0.75s;
 }
 
 .col-8 {

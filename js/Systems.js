@@ -22,10 +22,22 @@ class BasketMoveSystem extends System {
             const righttMoveX = basket.position.x + controlComponent.speed * delta;
 
             if (controlComponent.input.left && leftMoveX >= controlComponent.boundries.minX) {
-                basket.position.x = leftMoveX;
+                gsap.to(basket.position, {
+                    x: leftMoveX,
+                    y: 1.35,
+                    z: 0,
+                    duration: 0.27
+                });
+                // basket.position.x = leftMoveX;
             }
             if (controlComponent.input.right && righttMoveX <= controlComponent.boundries.maxX) {
-                basket.position.x = righttMoveX;
+                gsap.to(basket.position, {
+                    x: righttMoveX,
+                    y: 1.35,
+                    z: 0,
+                    duration: 0.27
+                });
+                // basket.position.x = righttMoveX;
             }
         });
     }

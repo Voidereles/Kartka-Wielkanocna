@@ -59,7 +59,7 @@ class Game {
                 height: window.innerHeight
             },
             game: {
-                playerSpeed: 10,
+                playerSpeed: 48,
                 startingHearts: 6,
                 boundries: {
                     minX: -4.5,
@@ -139,10 +139,14 @@ class Game {
         // this._scene.getObject3D().background = new THREE.Color(0xEDFCFF);
 
         // Camera
-        this._camera = new THREE.PerspectiveCamera(22, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this._camera = new THREE.PerspectiveCamera(18, window.innerWidth / window.innerHeight, 0.1, 1000);
         // this._camera.position.set( 0, 3.5, 13 );
-        this._camera.position.set(0, 2.8, 15.7);
-        this._camera.position.set(0, 3, 15.7);
+        // this._camera.position.set(0, 2.8, 15.7);
+        // this._camera.position.set(-0.3, 3, 15.7);
+
+
+        //i z 22 do 24
+        this._camera.position.set(-0.8, 2.7, 16.7);
 
         // Clock
         this._clock = new THREE.Clock();
@@ -202,18 +206,57 @@ class Game {
             console.warn('Models not loaded yet!');
         }
 
-        gsap.to(this._basket.getObject3D.position, {
+        gsap.to(this._basket.getObject3D().position, {
             x: 0,
             y: 1.35,
-            z: 0
+            z: 0,
+            duration: 1
         });
+
+        gsap.to(this._camera, {
+            fov: 22,
+            duration: 1,
+            onUpdate: () => {
+                this._camera.updateProjectionMatrix();
+            }
+        });
+
+        gsap.to(this._camera.position, {
+            x: -0.3,
+            y: 3,
+            z: 15.7,
+            duration: 1
+        });
+
         // this._basket.getObject3D().position.set(0, 1.35, 0.0);
     }
 
     stop() {
         this._playing = false;
         this._clock.stop();
-        this._basket.getObject3D().position.set(0, 0.75, 0.0);
+
+
+        gsap.to(this._basket.getObject3D().position, {
+            x: 0,
+            y: 0.75,
+            z: 0,
+            duration: 1
+        });
+
+        gsap.to(this._camera, {
+            fov: 18,
+            duration: 1,
+            onUpdate: () => {
+                this._camera.updateProjectionMatrix();
+            }
+        });
+
+        gsap.to(this._camera.position, {
+            x: -0.8,
+            y: 2.7,
+            z: 16.7,
+            duration: 1
+        });
     }
 
     _loadModels() {
