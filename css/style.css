@@ -140,8 +140,23 @@ small {
   }
 }
 
-.button-group {
-  display: none;
+@media (max-width: 992px) {
+  .fontSize-H1 {
+    font-size: 1.25rem;
+  }
+  .fontSize-XL {
+    font-size: 1rem;
+  }
+  .fontSize-L {
+    font-size: 1rem;
+  }
+}
+
+*,
+html,
+body {
+  -ms-touch-action: manipulation;
+      touch-action: manipulation;
 }
 
 .d-none {
@@ -149,7 +164,7 @@ small {
 }
 
 .btn {
-  font-size: 1.75rem;
+  font-size: 1rem;
   text-decoration: none;
   -webkit-transition: 0.3s;
   transition: 0.3s;
@@ -203,7 +218,40 @@ small {
   }
 }
 
+@media (min-width: 1px) {
+  .transparent {
+    opacity: 0;
+    -webkit-transform: translate(-50%, -50%) rotate3d(1, 0, 0, 88deg);
+            transform: translate(-50%, -50%) rotate3d(1, 0, 0, 88deg);
+    z-index: -1;
+  }
+}
+
 @media (min-width: 576px) {
+  .container {
+    min-width: 500px;
+  }
+}
+
+@media (min-width: 768px) and (min-height: 600px) {
+  .wishes__text {
+    font-size: 2rem;
+  }
+  .wishes__who-wish {
+    font-size: 1.75rem;
+  }
+  .btn {
+    font-size: 1.75rem;
+  }
+}
+
+@media (min-width: 992px) {
+  .container {
+    min-width: 750px;
+  }
+}
+
+@media (orientation: landscape) {
   .d-sm-none {
     display: none;
   }
@@ -236,12 +284,6 @@ small {
   }
   .container .btn {
     margin: 1rem;
-  }
-  .wishes__text {
-    font-size: 2rem;
-  }
-  .wishes__who-wish {
-    font-size: 1.75rem;
   }
   .button-group {
     display: -webkit-box;
@@ -284,6 +326,8 @@ small {
     border-bottom: 4px dotted #4c6d734f;
     font-size: 1.5rem;
     font-family: 'Indie Flower', cursive;
+    position: relative;
+    z-index: 2;
   }
   .form-input:hover, .form-input:focus {
     outline: none;
@@ -305,6 +349,11 @@ small {
     height: 70vh;
     overflow: hidden;
   }
+  .container-too-big {
+    max-height: 300px;
+    height: 70vh;
+    overflow: hidden;
+  }
   .ranking__text-container {
     font-size: 2rem;
     max-height: 200px;
@@ -316,11 +365,6 @@ small {
     font-size: 2rem;
     margin-top: 0.5rem;
     border-top: 4px dotted #4c6d734f;
-  }
-  .transparent {
-    opacity: 0;
-    -webkit-transform: translate(-50%, -50%) rotate3d(1, 0, 0, 88deg);
-            transform: translate(-50%, -50%) rotate3d(1, 0, 0, 88deg);
   }
   .footer {
     overflow-x: hidden;
@@ -359,6 +403,137 @@ small {
     -o-object-fit: cover;
        object-fit: cover;
     z-index: -1;
+  }
+}
+
+@media (max-width: 576px) and (orientation: portrait) {
+  .container {
+    position: absolute;
+    top: 50%;
+  }
+}
+
+@media (max-width: 768px) {
+  .container {
+    top: 0;
+    -webkit-transform: none;
+            transform: none;
+    position: absolute;
+  }
+  .container .button-group {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -ms-flex-wrap: wrap;
+        flex-wrap: wrap;
+    -webkit-box-pack: justify;
+        -ms-flex-pack: justify;
+            justify-content: space-between;
+  }
+}
+
+@media (max-width: 992px) {
+  body {
+    overflow-x: hidden;
+  }
+  .company-logo {
+    height: 40px;
+  }
+  .background-mobile {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    background: #7FCE86;
+    height: 39vh;
+  }
+  .touch-buttons {
+    position: absolute;
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: justify;
+        -ms-flex-pack: justify;
+            justify-content: space-between;
+    bottom: 0;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+            transform: translateX(-50%);
+    -webkit-transition: 0.2s;
+    transition: 0.2s;
+    width: 100%;
+    z-index: 1;
+    opacity: 0;
+  }
+  .touch-buttons.show {
+    opacity: 1;
+  }
+  .touch-buttons.show .btn {
+    opacity: 1;
+  }
+  .touch-buttons .btn {
+    margin: 1rem;
+    -webkit-transition: 0.1s;
+    transition: 0.1s;
+    opacity: 0;
+    z-index: 1;
+  }
+  .touch-buttons .btn svg {
+    width: 100px;
+    height: 50px;
+  }
+  .touch-buttons .btn:focus {
+    -webkit-transform: scale(1);
+            transform: scale(1);
+  }
+  .touch-buttons .btn:hover {
+    -webkit-transform: scale(1);
+            transform: scale(1);
+  }
+  .touch-buttons .btn:active {
+    -webkit-transform: scale(0.8);
+            transform: scale(0.8);
+  }
+  .score {
+    bottom: 30vh;
+    color: white;
+    left: 50%;
+    -webkit-transform: translateX(-50%);
+            transform: translateX(-50%);
+    width: 100%;
+    text-align: center;
+  }
+  .container {
+    overflow-x: hidden;
+  }
+  .container .btn {
+    background: white;
+    border-radius: 200px;
+    margin: 0.5rem;
+    padding: 0.5rem 0.75rem;
+  }
+  .container .form-group {
+    font-size: 1rem;
+  }
+  .container .form-input {
+    font-size: 1rem;
+  }
+  .container small {
+    font-size: 0.6rem;
+  }
+  .fontSize-H1 {
+    font-size: 1rem;
+  }
+  .ranking__text-container {
+    font-size: 1rem;
+  }
+  .ranking__yours {
+    font-size: 1rem;
+  }
+  .wishes__smaller, .wishes__who-wish {
+    font-size: 1rem;
+  }
+  .footer__link {
+    padding-bottom: 0.25rem;
   }
 }
 /*# sourceMappingURL=style.css.map */

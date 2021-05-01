@@ -5,7 +5,8 @@ import {
     ControllableBasket,
     Moving,
     Egg,
-    Hearts
+    Hearts,
+    FloatingCloud
 } from './Components';
 import * as THREE from 'three';
 
@@ -161,8 +162,36 @@ EggCollisionSystem.queries = {
     },
 };
 
+class CloudFloatingSystem extends System {
+    init() {
+        this.vec3 = new THREE.Vector3();
+    }
+    execute(delta, time) {
+
+        this.queries.clouds.results.forEach((entity) => {
+
+            const obj = entity.getObject3D();
+            const cloudComponent = entity.getComponent(FloatingCloud);
+
+            const velocity = cloudComponent.velocity * delta;
+            obj.position.add(this.vec3.copy(cloudComponent.direction).multiplyScalar(velocity));
+
+            if (obj.position.x > cloudComponent.boundries.max.x) { // Reached boundry, transform back to beginning (scrolling)
+
+                obj.position.x = cloudComponent.boundries.min.x - cloudComponent.respawnRange * Math.random();
+            }
+        });
+    }
+}
+CloudFloatingSystem.queries = {
+    clouds: {
+        components: [FloatingCloud]
+    }
+};
+
 export {
     BasketMoveSystem,
     MoveSystem,
-    EggCollisionSystem
+    EggCollisionSystem,
+    CloudFloatingSystem
 };

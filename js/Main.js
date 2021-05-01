@@ -25,6 +25,10 @@ function init() {
         });
     }
 
+    const touchButtons = document.getElementsByClassName('touch-buttons')[0];
+    const bgAudio = document.getElementById('backgroundAudio');
+    bgAudio.loop = true;
+
     startButtons.forEach(element => {
         element.addEventListener('click', () => {
             game.start();
@@ -34,6 +38,10 @@ function init() {
                 scoreDiv.classList.remove('transparent');
             }
             footer.classList.add('transparent');
+            touchButtons.classList.add('show');
+
+            // bgAudio.play();
+
         }, false);
     });
 
@@ -44,6 +52,8 @@ function init() {
         gameOverDiv.classList.remove('transparent');
         scoreDiv.classList.add('transparent');
         footer.classList.remove('transparent');
+        bgAudio.pause();
+        touchButtons.classList.remove('show');
     }, false);
 
 

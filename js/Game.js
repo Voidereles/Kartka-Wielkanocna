@@ -11,12 +11,14 @@ import {
     Egg,
     ControllableBasket,
     Moving,
-    Hearts
+    Hearts,
+    FloatingCloud
 } from './Components';
 import {
     BasketMoveSystem,
     MoveSystem,
-    EggCollisionSystem
+    EggCollisionSystem,
+    CloudFloatingSystem
 } from './Systems';
 
 // THREE
@@ -31,6 +33,7 @@ import {
 // Utility
 import Stats from 'three/examples/jsm/libs/stats.module';
 import {
+    gui,
     GUI
 } from 'three/examples/jsm/libs/dat.gui.module';
 
@@ -78,16 +81,36 @@ class Game {
                     'brown': 8,
                     'silver': 9,
                     'gold': 10,
-                    'black': -100
+                    'black': -50
                 },
                 startingEggVelocity: 1,
-                eggVelocityAcceleration: 0.04
+                eggVelocityAcceleration: 0.04,
+                clouds: {
+                    boundries: {
+                        min: {
+                            x: -11,
+                            y: 5
+                        },
+                        max: {
+                            x: 15,
+                            y: 6.5
+                        }
+                    },
+                    speed: 0.3,
+                    speedVariation: 0.4,
+                    respawnRange: 4
+                },
+                rabbit: {
+                    animationCD: 2, // seconds
+                    animationRandom: 2 // seconds
+                }
             }
         };
 
         this._playing = false;
         this._basket = null;
         this._heartsContaine = null;
+        this._rabbit = null;
         this._eggs = [];
 
         // ECS  
@@ -98,11 +121,17 @@ class Game {
             .registerComponent(Egg)
             .registerComponent(ControllableBasket)
             .registerComponent(Hearts)
+            .registerComponent(FloatingCloud)
             .registerComponent(Moving);
         this._world
             .registerSystem(BasketMoveSystem)
             .registerSystem(MoveSystem)
+            .registerSystem(CloudFloatingSystem)
             .registerSystem(EggCollisionSystem);
+
+        this._world.getSystem(BasketMoveSystem).stop();
+        this._world.getSystem(MoveSystem).stop();
+        this._world.getSystem(EggCollisionSystem).stop();
 
         if (this._settings.debug) {
             //Stats
@@ -139,14 +168,22 @@ class Game {
         // this._scene.getObject3D().background = new THREE.Color(0xEDFCFF);
 
         // Camera
-        this._camera = new THREE.PerspectiveCamera(18, window.innerWidth / window.innerHeight, 0.1, 1000);
+        this._camera = new THREE.PerspectiveCamera(16, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+
+
+        if (window.innerWidth < 992) {
+            this._camera = new THREE.PerspectiveCamera(77, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+            // this._camera.position.set(-0.8, 3.7, 16.7);
+        }
         // this._camera.position.set( 0, 3.5, 13 );
         // this._camera.position.set(0, 2.8, 15.7);
         // this._camera.position.set(-0.3, 3, 15.7);
 
 
-        //i z 22 do 24
         this._camera.position.set(-0.8, 2.7, 16.7);
+        //i z 22 do 24
 
         // Clock
         this._clock = new THREE.Clock();
@@ -159,7 +196,7 @@ class Game {
         this._models = {};
 
         // Resize Event
-        window.addEventListener("resize", () => this._onWindowResize(), false);
+        // window.addEventListener("resize", () => this._onWindowResize(), false);
 
         THREE.DefaultLoadingManager.onLoad = () => {
             console.log('Loading Complete!');
@@ -169,7 +206,6 @@ class Game {
 
         // Inits
         this._loadModels();
-        this._initControls();
         this._initLights();
 
         this._animate();
@@ -202,9 +238,15 @@ class Game {
             this._basket.getMutableComponent(ControllableBasket).lives = this._settings.game.startingHearts;
             this._fillHeartsContainer();
             this._resetEggsPositions();
+            this._world.getSystem(BasketMoveSystem).play();
+            this._world.getSystem(MoveSystem).play();
+            this._world.getSystem(EggCollisionSystem).play();
         } else {
             console.warn('Models not loaded yet!');
         }
+
+        this._initControls();
+
 
         gsap.to(this._basket.getObject3D().position, {
             x: 0,
@@ -215,6 +257,7 @@ class Game {
 
         gsap.to(this._camera, {
             fov: 22,
+
             duration: 1,
             onUpdate: () => {
                 this._camera.updateProjectionMatrix();
@@ -228,13 +271,59 @@ class Game {
             duration: 1
         });
 
+
+        let proportions = window.innerWidth / window.innerHeight;
+        if (proportions > 0.9 && proportions < 1.35) {
+            gsap.to(this._camera, {
+                fov: 35,
+
+                duration: 1,
+                onUpdate: () => {
+                    this._camera.updateProjectionMatrix();
+                }
+            });
+
+            gsap.to(this._camera.position, {
+                x: -0.3,
+                y: 4,
+                z: 15.7,
+                duration: 1
+            });
+
+            this._heartsContainer.getObject3D().position.set(-4.5, 5.7, 0);
+        }
+
+        if (window.innerWidth < 992) {
+            gsap.to(this._camera, {
+                fov: 75,
+
+                duration: 1,
+                onUpdate: () => {
+                    this._camera.updateProjectionMatrix();
+                }
+            });
+
+
+            // this._camera.position.set(-0.8, 2.7, 16.7);
+
+            gsap.to(this._camera.position, {
+                x: -1.1,
+                y: 2.5,
+                z: 16.5,
+                duration: 1
+            });
+
+            this._heartsContainer.getObject3D().position.set(-4.1, 4.7, 2);
+        }
         // this._basket.getObject3D().position.set(0, 1.35, 0.0);
     }
 
     stop() {
         this._playing = false;
         this._clock.stop();
-
+        this._world.getSystem(BasketMoveSystem).stop();
+        this._world.getSystem(MoveSystem).stop();
+        this._world.getSystem(EggCollisionSystem).stop();
 
         gsap.to(this._basket.getObject3D().position, {
             x: 0,
@@ -279,16 +368,16 @@ class Game {
             'trawa',
         ];
 
-        const loadAndAssign = (url) => {
-            this._gltfLoader.load(path + url + ext, (gltf) => {
-                gltf.scene.traverse((child) => {
-                    if (this._settings.shadows.ON && child.isMesh) {
-                        child.receiveShadow = child.castShadow = true;
-                    }
-                });
-                this._models[url] = gltf.scene;
-            });
-        }
+        // const loadAndAssign = (url) => {
+        //     this._gltfLoader.load(path + url + ext, (gltf) => {
+        //         gltf.scene.traverse((child) => {
+        //             if (this._settings.shadows.ON && child.isMesh) {
+        //                 child.receiveShadow = child.castShadow = true;
+        //             }
+        //         });
+        //         this._models[url] = gltf.scene;
+        //     });
+        // }
 
         urls.forEach((url) => {
             this._gltfLoader.load(path + url + ext, (gltf) => {
@@ -297,6 +386,7 @@ class Game {
                         child.receiveShadow = child.castShadow = true;
                     }
                 });
+                gltf.scene.animations = gltf.animations;
                 this._models[url] = gltf.scene;
             });
         });
@@ -310,8 +400,36 @@ class Game {
 
             const model = this._models[key];
 
+            if (key.includes('krolik')) {
 
-            if (key.includes('koszyczek')) {
+                const entity = this._world.createEntity().addObject3DComponent(model, this._scene);
+
+                this._rabbit = entity.getObject3D();
+                this._rabbit.position.set(-6, 1.66, -0.6);
+
+                this._rabbit.mixer = new THREE.AnimationMixer(this._rabbit);
+                const clip = THREE.AnimationClip.findByName(this._rabbit.animations, 'Uszka');
+                const uszkaAction = this._rabbit.mixer.clipAction(clip);
+                this._rabbit.actions = {
+                    uszka: uszkaAction
+                };
+                this._rabbit.actions.uszka.loop = THREE.LoopOnce;
+                this._rabbit.actions.uszka.timeScale = 1; // Speed up or slow down the animation
+                // this._rabbit.actions.uszka.play();
+
+                const animCD = this._settings.game.rabbit.animationCD;
+                const animRandom = this._settings.game.rabbit.animationRandom;
+
+                const animationLoop = () => { // Loop to play the animation once every few seconds
+                    setTimeout(() => {
+                        this._rabbit.actions.uszka.reset();
+                        this._rabbit.actions.uszka.play();
+                        animationLoop();
+                    }, (animCD + animRandom * Math.random()) * 1000);
+                }
+                animationLoop();
+
+            } else if (key.includes('koszyczek')) {
 
                 const entity = this._world.createEntity().addObject3DComponent(model, this._scene);
                 entity.addComponent(ControllableBasket, {
@@ -371,6 +489,23 @@ class Game {
 
                     this._eggs.push(eggEntity);
                 }
+            } else if (key.includes('chmurka')) {
+
+                const cloudEntity = this._world.createEntity().addObject3DComponent(model, this._scene);
+                const boundries = this._settings.game.clouds.boundries;
+                const respawnRange = this._settings.game.clouds.respawnRange;
+                cloudEntity.addComponent(FloatingCloud, {
+                    direction: new THREE.Vector3(1, 0, 0),
+                    velocity: this._settings.game.clouds.speed + this._settings.game.clouds.speedVariation * Math.random(),
+                    boundries: boundries,
+                    respawnRange: respawnRange
+                });
+
+                model.position.z = -5;
+                model.position.y = boundries.min.y + (boundries.max.y - boundries.min.y) * Math.random();
+                model.position.x =
+                    (boundries.min.x + respawnRange) +
+                    ((boundries.max.x - respawnRange) - (boundries.min.x + respawnRange)) * Math.random();
 
             } else {
 
@@ -438,11 +573,56 @@ class Game {
                     this.controls.right = trueOrFalse;
                     controlComponent.input.right = trueOrFalse;
                     break;
+
             }
         }
 
+
         document.addEventListener('keydown', onKeyDown, false);
         document.addEventListener('keyup', onKeyUp, false);
+
+
+
+
+        const onBasketButtonLeft = () => {
+            const controlComponent = this._basket.getComponent(ControllableBasket);
+            this.controls.left = true;
+            controlComponent.input.left = true;
+        }
+
+        const onBasketButtonLeftEnd = () => {
+            const controlComponent = this._basket.getComponent(ControllableBasket);
+            this.controls.left = false;
+            controlComponent.input.left = false;
+        }
+
+        // buttonRight = document.getElementById('btnBasketToRight');
+        const buttonLeft = document.getElementById('btnBasketToLeft');
+
+        buttonLeft.addEventListener('touchstart', onBasketButtonLeft, false);
+        buttonLeft.addEventListener('touchend', onBasketButtonLeftEnd, false);
+
+
+
+
+        const onBasketButtonRight = () => {
+            const controlComponent = this._basket.getComponent(ControllableBasket);
+            this.controls.right = true;
+            controlComponent.input.right = true;
+        }
+
+        const onBasketButtonRightEnd = () => {
+            const controlComponent = this._basket.getComponent(ControllableBasket);
+            this.controls.right = false;
+            controlComponent.input.right = false;
+        }
+
+        // buttonRight = document.getElementById('btnBasketToRight');
+        const buttonRight = document.getElementById('btnBasketToRight');
+
+        buttonRight.addEventListener('touchstart', onBasketButtonRight, false);
+        buttonRight.addEventListener('touchend', onBasketButtonRightEnd, false);
+
     }
 
     _initLights() {
@@ -519,9 +699,10 @@ class Game {
         const delta = this._clock.getDelta();
         const elapsedTime = this._clock.elapsedTime;
 
-        if (this._playing) {
-            this._world.execute(delta, elapsedTime);
+        if (this.loaded) {
+            this._rabbit.mixer.update(delta);
         }
+        this._world.execute(delta, elapsedTime);
 
         this._renderer.render(this._scene.getObject3D(), this._camera);
 
@@ -529,15 +710,15 @@ class Game {
         if (this._settings.debug) this._stats.end();
     }
 
-    _onWindowResize() {
+    // _onWindowResize() {
 
-        this._settings.displaySize.width = window.innerWidth;
-        this._settings.displaySize.height = window.innerHeight;
+    //     this._settings.displaySize.width = window.innerWidth;
+    //     this._settings.displaySize.height = window.innerHeight;
 
-        this._renderer.setSize(this._settings.displaySize.width, this._settings.displaySize.height);
-        this._camera.aspect = this._settings.displaySize.width / this._settings.displaySize.height;
-        this._camera.updateProjectionMatrix();
-    }
+    //     this._renderer.setSize(this._settings.displaySize.width, this._settings.displaySize.height);
+    //     this._camera.aspect = this._settings.displaySize.width / this._settings.displaySize.height;
+    //     this._camera.updateProjectionMatrix();
+    // }
 }
 
 export {
